@@ -8,21 +8,30 @@
 
 import UIKit
 
-//
-
 class PlanetsCollectionViewController: UICollectionViewController {
     
     // MARK: - Properties
     
     let planetController = PlanetController()
     
-    var planets: [Planet] {
-        let shouldShowPluto = UserDefaults.standard.bool(forKey: .shouldShowPlutoKey)
-        return shouldShowPluto ? planetController.planetsWithPluto : planetController.planetsWithoutPluto
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.observeShouldShowPluto()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        collectionView?.reloadData()
+    }
+    
+    func observeShouldShowPluto() {
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshViews), name: .switchWasFlipped, object: nil)
+    }
+    
+    // the @objc marjs this method was executable by the obj-C runtime, in other words, compatable with obj-C
+    
+    // you are not required to have the `notification` argument. It is however necessary in orger to get the `useerInfo` dictionary if you post one.
+    @objc func refreshViews() {
         collectionView?.reloadData()
     }
     
@@ -32,13 +41,13 @@ class PlanetsCollectionViewController: UICollectionViewController {
     // MARK: UICollectionViewDataSource
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return planets.count
+        return planetController.planets.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PlanetCell", for: indexPath) as! PlanetCollectionViewCell
         
-        let planet = planets[indexPath.item]
+        let planet = planetController.planets[indexPath.item]
         cell.imageView.image = planet.image
         cell.textLabel.text = planet.name
         
@@ -62,7 +71,7 @@ class PlanetsCollectionViewController: UICollectionViewController {
         if segue.identifier == "ShowPlanetDetail" {
             guard let indexPath = collectionView?.indexPathsForSelectedItems?.first else { return }
             let detailVC = segue.destination as! PlanetDetailViewController
-            detailVC.planet = planets[indexPath.row]
+            detailVC.planet = planetController.planets[indexPath.row]
         }
     }
 }
